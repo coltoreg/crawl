@@ -1,7 +1,10 @@
-import random
+"""
+配置模組，集中管理爬蟲配置
+"""
 import os
-from dotenv import load_dotenv
+from typing import Dict, List, Any, Optional, Union
 from pathlib import Path
+from dotenv import load_dotenv
 
 # 載入環境變數
 load_dotenv()
@@ -11,46 +14,45 @@ BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)  # 確保輸出目錄存在
 
-#爬蟲設定
-BROWSER_CONFIG = {
+# 瀏覽器配置
+BROWSER_CONFIG: Dict[str, Any] = {
     "headless": True,           # 是否使用無頭模式
     "user_agent_mode": "random", # 隨機 User-Agent
     #"text_mode": True,          # 是否使用純文字模式
-    
 }
 
-#爬取行為模擬
-SIMULATION_CONFIG = {
+# 爬取行為模擬
+SIMULATION_CONFIG: Dict[str, Any] = {
     "override_navigator": True,   # 修改瀏覽器 Navigator 參數
-    "delay_before_return_html": 3.0, # 爬取後延遲 1 秒，確保 JS 載入完成
+    "delay_before_return_html": 3.0, # 爬取後延遲 3 秒，確保 JS 載入完成
     "exclude_external_links": True,  # 不爬取外部連結
     "exclude_social_media_links": True,  # 不爬取社群媒體連結
     "exclude_external_images": True,  # 不爬取外部圖片
-
 }
 
-#重試機制
-RETRY_CONFIG = {
+# 重試機制
+RETRY_CONFIG: Dict[str, int] = {
     "max_retries": 3,        # 最大重試次數
     "min_delay": 3,          # 重試間隔最短時間 (秒)
     "max_delay": 10          # 重試間隔最長時間 (秒)
 }
 
 # 爬蟲限制
-"""
-CRAWLER_LIMITS = {
-    "max_depth": 3,          # 最大爬取深度
-    "max_pages": 100,        # 每個站點最多爬取頁面數
-    "initial_urls": 3,        # 初始爬取的 URL 數量
-}
-"""
-
-CRAWLER_LIMITS = {
+CRAWLER_LIMITS: Dict[str, int] = {
     "max_depth": 1,          # 最大爬取深度
-    "max_pages": 10,        # 每個站點最多爬取頁面數
-    "initial_urls": 3,        # 初始爬取的 URL 數量
+    "max_pages": 10,         # 每個站點最多爬取頁面數
+    "initial_urls": 3,       # 初始爬取的 URL 數量
 }
 
+# 資料庫配置
+"""
+DB_CONFIG: Dict[str, Union[str, int]] = {
+    "host": os.getenv("DB_HOST", "localhost"),
+    "user": os.getenv("DB_USER", ""),
+    "password": os.getenv("DB_PASSWORD", ""),
+    "database": os.getenv("DB_DATABASE", "crawl")
+}
+"""
 
 #MySQL 連接設定
 DB_CONFIG = {
@@ -60,43 +62,44 @@ DB_CONFIG = {
     "database": "crawl"
 }
 
+
 # Kafka 配置
-KAFKA_CONFIG = {
-    "bootstrap_servers": ["localhost:9092"],
-    "task_topic": "CrawlTasks",
-    "result_topic": "CrawlResults",
-    "group_id": "CrawlerGroup",
-    "consumer_timeout_ms": 3000,  # 消費者超時時間
-    "max_poll_interval_ms": 300000,  # 5分鐘
-    "max_poll_records": 500,
+KAFKA_CONFIG: Dict[str, Any] = {
+    "bootstrap_servers": [os.getenv("KAFKA_SERVER", "localhost:9092")],
+    "task_topic": os.getenv("KAFKA_TASK_TOPIC", "CrawlTasks"),
+    "result_topic": os.getenv("KAFKA_RESULT_TOPIC", "CrawlResults"),
+    "group_id": os.getenv("KAFKA_GROUP_ID", "CrawlerGroup"),
+    "consumer_timeout_ms": int(os.getenv("KAFKA_CONSUMER_TIMEOUT", "3000")),
+    "max_poll_interval_ms": int(os.getenv("KAFKA_MAX_POLL_INTERVAL", "300000")),  # 5分鐘
+    "max_poll_records": int(os.getenv("KAFKA_MAX_POLL_RECORDS", "500")),
 }
 
 # Elasticsearch 配置
-ES_CONFIG = {
-    "hosts": ["http://localhost:9200"],
-    "index": "crawl_data"
-}
-
-KAFDROP_CONFIG = {
-    "brokerconnect": "localhost:9092",  # Kafka broker 地址
-    "port": 9000                        # Kafdrop UI 介面埠號
+ES_CONFIG: Dict[str, Any] = {
+    "hosts": [os.getenv("ES_HOST", "http://localhost:9200")],
+    "index": os.getenv("ES_INDEX", "crawl_data"),
+    "settings": {
+        "number_of_shards": int(os.getenv("ES_SHARDS", "1")),
+        "number_of_replicas": int(os.getenv("ES_REPLICAS", "0")),
+        "refresh_interval": os.getenv("ES_REFRESH_INTERVAL", "30s")
+    }
 }
 
 # 全局流量控制設定
-RATE_LIMIT_CONFIG = {
-    "default_domain_delay": 3.0,      # 默認域名延遲 (秒)
-    "min_domain_delay": 1.5,          # 最小域名延遲 (秒)
-    "max_domain_delay": 20.0,         # 最大域名延遲 (秒)
-    "global_rate_limit": 40,          # 全局每分鐘最大請求數
-    "global_time_window": 60,         # 全局限流時間窗口 (秒)
-    "failure_backoff_factor": 2.0,    # 失敗後增加延遲的倍數
-    "success_recovery_factor": 0.9,   # 成功後減少延遲的倍數
-    "max_failures_before_throttle": 5, # 觸發限流的連續失敗次數
-    "throttle_duration_minutes": 2   # 限流持續時間 (分鐘)
+RATE_LIMIT_CONFIG: Dict[str, Any] = {
+    "default_domain_delay": float(os.getenv("RATE_DEFAULT_DELAY", "3.0")),
+    "min_domain_delay": float(os.getenv("RATE_MIN_DELAY", "1.5")),
+    "max_domain_delay": float(os.getenv("RATE_MAX_DELAY", "20.0")),
+    "global_rate_limit": int(os.getenv("RATE_GLOBAL_LIMIT", "40")),
+    "global_time_window": int(os.getenv("RATE_TIME_WINDOW", "60")),
+    "failure_backoff_factor": float(os.getenv("RATE_BACKOFF_FACTOR", "2.0")),
+    "success_recovery_factor": float(os.getenv("RATE_RECOVERY_FACTOR", "0.9")),
+    "max_failures_before_throttle": int(os.getenv("RATE_MAX_FAILURES", "5")),
+    "throttle_duration_minutes": int(os.getenv("RATE_THROTTLE_MINUTES", "2"))
 }
 
 # 站點配置
-SITE_CONFIG = {
+SITE_CONFIG: Dict[str, Dict[str, Any]] = {
     "udn": {
         "site_id": 1,
         "website_category": "news",
@@ -320,6 +323,7 @@ SITE_CONFIG = {
             "https://woman.tvbs.com.tw/constellation/page/1"
         ],
         "url_pattern": "^https://woman\.tvbs\.com\.tw/[\w-]+/\d+$",
+        "is_regex": True,
         "content_selector": {
             "name": "Article",
             "baseSelector": "div.woman_article.min-h-screen",
@@ -329,7 +333,7 @@ SITE_CONFIG = {
         }
     },
     "gonews": { #知識網
-        "site_id": 12,
+        "site_id": 13,
         "website_category": "news",
         "start_urls": [
             "https://gonews.work/",
@@ -345,7 +349,7 @@ SITE_CONFIG = {
         }
     },
     "ftnn": { 
-        "site_id": 13,
+        "site_id": 14,
         "website_category": "news",
         "start_urls": [
             "https://www.ftnn.com.tw/",
@@ -360,15 +364,15 @@ SITE_CONFIG = {
             ]
         }
     },
-
     "ebc": { 
-        "site_id": 14,
+        "site_id": 15,
         "website_category": "news",
         "start_urls": [
             "https://news.ebc.net.tw/",
             "https://www.ftnn.com.tw/category/0",
         ],
         "url_pattern": "^https://news\.ebc\.net\.tw/news/\w+/[0-9]+",
+        "is_regex": True,
         "content_selector": {
             "name": "Article",
             "baseSelector": "div.article_main",
@@ -378,13 +382,14 @@ SITE_CONFIG = {
         }
     },
     "businessweekly": { 
-        "site_id": 15,
+        "site_id": 16,
         "website_category": "news",
         "start_urls": [
             "https://www.businessweekly.com.tw/",
             "https://www.businessweekly.com.tw/channel/business/0000000319",
         ],
         "url_pattern": "^https://www\.businessweekly\.com\.tw/\w+/blog/\d+",
+        "is_regex": True,
         "content_selector": {
             "name": "Article",
             "baseSelector": "section.row.no-gutters.position-relative",
@@ -394,7 +399,7 @@ SITE_CONFIG = {
         }
     },
     "sportsv": { 
-        "site_id": 16,
+        "site_id": 17,
         "website_category": "sport_news",
         "start_urls": [
             "https://www.sportsv.net/",
@@ -404,7 +409,6 @@ SITE_CONFIG = {
             "https://www.sportsv.net/tennis",
             "https://www.sportsv.net/football",
             "https://www.sportsv.net/racing"
-
         ],
         "url_pattern": "articles/",
         "content_selector": {
@@ -415,8 +419,6 @@ SITE_CONFIG = {
             ]
         }
     },
-
-
     "metadata": {
         "site_id": 99,
         "website_category": "metadata",
@@ -441,7 +443,51 @@ SITE_CONFIG = {
     }
 }
 
+# 獲取站點ID到站點名稱的映射
+SITE_ID_TO_NAME: Dict[int, str] = {
+    config["site_id"]: site_name 
+    for site_name, config in SITE_CONFIG.items()
+    if "site_id" in config
+}
 
-#爬取間隔 (避免封鎖)
-def get_random_delay():
-    return random.uniform(2, 6)  # 隨機延遲 2~6 秒
+def get_site_name_by_id(site_id: int) -> Optional[str]:
+    """
+    根據站點ID獲取站點名稱
+    
+    Args:
+        site_id: 站點ID
+        
+    Returns:
+        Optional[str]: 站點名稱，若找不到則返回None
+    """
+    return SITE_ID_TO_NAME.get(site_id)
+
+def get_site_config_by_id(site_id: int) -> Optional[Dict[str, Any]]:
+    """
+    根據站點ID獲取站點配置
+    
+    Args:
+        site_id: 站點ID
+        
+    Returns:
+        Optional[Dict[str, Any]]: 站點配置，若找不到則返回None
+    """
+    site_name = get_site_name_by_id(site_id)
+    if site_name:
+        return SITE_CONFIG.get(site_name)
+    return None
+
+# 簡單的隨機延遲函數
+def get_random_delay(min_delay: float = 2.0, max_delay: float = 6.0) -> float:
+    """
+    生成隨機延遲時間
+    
+    Args:
+        min_delay: 最小延遲時間 (秒)
+        max_delay: 最大延遲時間 (秒)
+        
+    Returns:
+        float: 隨機延遲時間 (秒)
+    """
+    import random
+    return random.uniform(min_delay, max_delay)
