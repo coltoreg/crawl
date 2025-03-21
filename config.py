@@ -55,8 +55,8 @@ CRAWLER_LIMITS = {
 #MySQL 連接設定
 DB_CONFIG = {
     "host": "localhost",
-    "user": "root",
-    "password": "!Colto10436",
+    "user": "",
+    "password": "",
     "database": "crawl"
 }
 
