@@ -280,7 +280,7 @@ class BaseCrawler:
                                 
                                 # 記錄為解析錯誤，但這裡不算作總體失敗
                                 logger.warning(f"解析內容時出現錯誤，但仍繼續處理: {url}")
-                                
+                        
                         # 如果有內容，可能需要特定站點的清理
                         if "content" in article and article["content"]:
                             article["content"] = clean_content(self.site_name, article["content"])
@@ -303,32 +303,38 @@ class BaseCrawler:
                                 
                         article["next_level_links"] = list(set(valid_links))  # 去重
                         return article
-                
-                except Exception as e:
-                    logger.error(f"爬取失敗: {url}, 錯誤: {e}")
-                    self.stats.record_failure(url, f"Exception: {str(e)}")
                     
-                    # 如果不是最後一次嘗試，繼續重試
-                    if attempt < self.retry_config["max_retries"] - 1:
-                        # 計算退避延遲
-                        delay = random.uniform(
-                            self.retry_config["min_delay"],
-                            self.retry_config["max_delay"]
-                        ) * (attempt + 1)
+                    except Exception as e:
+                        logger.error(f"爬取失敗: {url}, 錯誤: {e}")
+                        self.stats.record_failure(url, f"Exception: {str(e)}")
                         
-                        logger.info(f"將在 {delay:.2f} 秒後重試 (第 {attempt+1} 次失敗)")
-                        self.stats.record_retry(url)
-                        await asyncio.sleep(delay)
-                    else:
-                        # 最後一次嘗試也失敗，記錄失敗
-                        from database import save_failed_url
-                        save_failed_url(url, str(e), "Exception")
+                        # 如果不是最後一次嘗試，繼續重試
+                        if attempt < self.retry_config["max_retries"] - 1:
+                            # 計算退避延遲
+                            delay = random.uniform(
+                                self.retry_config["min_delay"],
+                                self.retry_config["max_delay"]
+                            ) * (attempt + 1)
+                            
+                            logger.info(f"將在 {delay:.2f} 秒後重試 (第 {attempt+1} 次失敗)")
+                            self.stats.record_retry(url)
+                            await asyncio.sleep(delay)
+                        else:
+                            # 最後一次嘗試也失敗，記錄失敗
+                            from database import save_failed_url
+                            save_failed_url(url, str(e), "Exception")
+                
+                # 所有嘗試都失敗
+                return None
             
-            # 所有嘗試都失敗
-            return None
         except Exception as e:
-            logger.error(f"爬取過程中發生嚴重錯誤: {url}, {e}")
-            self.stats.record_failure(url, f"Critical error: {str(e)}")
+            logger.error(f"爬取過程中發生未捕獲異常: {url}, 錯誤: {e}")
+            self.stats.record_failure(url, f"Unhandled Exception: {str(e)}")
+            
+            # 使用資料庫記錄失敗
+            from database import save_failed_url
+            save_failed_url(url, str(e), "UnhandledException")
+            
             return None
     
     async def process_retry_queue(self, max_items: int = 5) -> int:
@@ -378,7 +384,6 @@ class BaseCrawler:
         Returns:
             bool: 爬取是否成功完成
         """
-        from config import OUTPUT_DIR
         # 使用延遲引用避免循環引用
         from database import save_to_mysql
         from kafka_manager import send_crawl_result
@@ -484,6 +489,7 @@ class BaseCrawler:
         logger.info(f"成功率: {report['success_rate']}")
         
         return True
+
 
 # 註冊各站點特定爬蟲類的字典
 SITE_CRAWLER_REGISTRY = {}
