@@ -1,0 +1,5 @@
+Crawl4AI==0.4.248
+elasticsearch==8.17.1
+kafka_python==2.0.2
+pandas==2.2.3
+PyMySQL==1.1.1
