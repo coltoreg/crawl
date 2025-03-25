@@ -1,0 +1,15 @@
+{
+  "site_name": "udn",
+  "start_time": "2025-03-21 14:59:16",
+  "end_time": "2025-03-21 14:59:54",
+  "duration_seconds": 38.323656,
+  "total_urls": 7,
+  "successful_urls": 7,
+  "failed_urls": 0,
+  "retry_urls": 0,
+  "success_rate": "100.00%",
+  "depth_stats": {
+    "0": 7
+  },
+  "error_types": {}
+}

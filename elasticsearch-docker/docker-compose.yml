@@ -1,0 +1,21 @@
+version: '3'
+services:
+  elasticsearch:
+    build:
+      context: .  # 假設 Dockerfile 在與 docker-compose.yml 相同的目錄中
+      dockerfile: Dockerfile
+    container_name: elasticsearch
+    environment:
+      - ELASTICSEARCH_HEAP_SIZE=512m
+      - ELASTICSEARCH_PLUGINS=analysis-icu
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/bitnami/elasticsearch/data
+
+volumes:
+  elasticsearch_data:
+    driver: local

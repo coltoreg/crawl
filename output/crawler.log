@@ -1453,3 +1453,152 @@
 2025-03-21 14:04:11,652 - database - INFO - 🧹 已清除 URL 快取
 2025-03-21 14:04:11,652 - main - WARNING - 系統初始化完成，但部分組件可能未成功初始化
 2025-03-21 14:04:11,653 - es_manager - INFO - Elasticsearch 連接已關閉
+2025-03-21 14:15:54,571 - main - INFO - 開始系統初始化...
+2025-03-21 14:15:54,576 - database - INFO - 已建立數據庫連接: localhost
+2025-03-21 14:15:54,578 - database - INFO - ✅ 資料庫表結構初始化成功
+2025-03-21 14:15:54,578 - crawler_manager - INFO - 已載入 19 個站點配置
+2025-03-21 14:15:54,579 - database - INFO - ✅ 資料庫表結構初始化成功
+2025-03-21 14:15:54,580 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv6 ('::1', 9092, 0, 0)]>: connecting to localhost:9092 [('::1', 9092, 0, 0) IPv6]
+2025-03-21 14:15:54,580 - kafka.conn - INFO - Probing node bootstrap-0 broker version
+2025-03-21 14:15:54,580 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv6 ('::1', 9092, 0, 0)]>: Connection complete.
+2025-03-21 14:15:54,688 - kafka.conn - INFO - Broker version identified as 2.5.0
+2025-03-21 14:15:54,688 - kafka.conn - INFO - Set configuration api_version=(2, 5, 0) to skip auto check_version requests on startup
+2025-03-21 14:15:54,688 - kafka.conn - INFO - Probing node bootstrap-0 broker version
+2025-03-21 14:15:54,793 - kafka.conn - INFO - Broker version identified as 2.5.0
+2025-03-21 14:15:54,794 - kafka.conn - INFO - Set configuration api_version=(2, 5, 0) to skip auto check_version requests on startup
+2025-03-21 14:15:54,798 - kafka.conn - WARNING - DNS lookup failed for kafka:9092, exception was [Errno 8] nodename nor servname provided, or not known. Is your advertised.listeners (called advertised.host.name before Kafka 9) correct and resolvable?
+2025-03-21 14:15:54,799 - kafka.conn - ERROR - DNS lookup failed for kafka:9092 (0)
+2025-03-21 14:15:54,799 - kafka.conn - INFO - Probing node 1 broker version
+2025-03-21 14:15:54,801 - kafka.conn - WARNING - DNS lookup failed for kafka:9092, exception was [Errno 8] nodename nor servname provided, or not known. Is your advertised.listeners (called advertised.host.name before Kafka 9) correct and resolvable?
+2025-03-21 14:15:54,801 - kafka.conn - ERROR - DNS lookup failed for kafka:9092 (0)
+2025-03-21 14:15:54,801 - kafka_manager - ERROR - 確保 topics 存在失敗: NodeNotReadyError
+2025-03-21 14:15:54,801 - main - ERROR - Kafka topics 初始化失敗
+2025-03-21 14:15:54,801 - es_manager - INFO - Elasticsearch 連接成功: ['http://localhost:9200']
+2025-03-21 14:15:54,813 - elastic_transport.transport - INFO - HEAD http://localhost:9200/crawl_data [status:200 duration:0.011s]
+2025-03-21 14:15:54,813 - database - INFO - 🧹 已清除 URL 快取
+2025-03-21 14:15:54,813 - main - WARNING - 系統初始化完成，但部分組件可能未成功初始化
+2025-03-21 14:15:54,813 - es_manager - INFO - Elasticsearch 連接已關閉
+2025-03-21 14:26:38,700 - main - INFO - 開始系統初始化...
+2025-03-21 14:26:38,705 - database - INFO - 已建立數據庫連接: localhost
+2025-03-21 14:26:38,707 - database - INFO - ✅ 資料庫表結構初始化成功
+2025-03-21 14:26:38,707 - crawler_manager - INFO - 已載入 19 個站點配置
+2025-03-21 14:26:38,708 - database - INFO - ✅ 資料庫表結構初始化成功
+2025-03-21 14:26:38,709 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv6 ('::1', 9092, 0, 0)]>: connecting to localhost:9092 [('::1', 9092, 0, 0) IPv6]
+2025-03-21 14:26:38,709 - kafka.conn - INFO - Probing node bootstrap-0 broker version
+2025-03-21 14:26:38,709 - kafka.conn - ERROR - Connect attempt to <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv6 ('::1', 9092, 0, 0)]> returned error 61. Disconnecting.
+2025-03-21 14:26:38,710 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv6 ('::1', 9092, 0, 0)]>: Closing connection. KafkaConnectionError: 61 ECONNREFUSED
+2025-03-21 14:26:38,759 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv6 ('::1', 9092, 0, 0)]>: connecting to localhost:9092 [('::1', 9092, 0, 0) IPv6]
+2025-03-21 14:26:38,759 - kafka.conn - ERROR - Connect attempt to <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv6 ('::1', 9092, 0, 0)]> returned error 61. Disconnecting.
+2025-03-21 14:26:38,759 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv6 ('::1', 9092, 0, 0)]>: Closing connection. KafkaConnectionError: 61 ECONNREFUSED
+2025-03-21 14:26:38,809 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv4 ('127.0.0.1', 9092)]>: connecting to localhost:9092 [('127.0.0.1', 9092) IPv4]
+2025-03-21 14:26:38,809 - kafka.conn - ERROR - Connect attempt to <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv4 ('127.0.0.1', 9092)]> returned error 61. Disconnecting.
+2025-03-21 14:26:38,809 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv4 ('127.0.0.1', 9092)]>: Closing connection. KafkaConnectionError: 61 ECONNREFUSED
+2025-03-21 14:26:38,809 - kafka_manager - ERROR - 確保 topics 存在失敗: NoBrokersAvailable
+2025-03-21 14:26:38,809 - main - ERROR - Kafka topics 初始化失敗
+2025-03-21 14:26:38,810 - es_manager - INFO - Elasticsearch 連接成功: ['http://localhost:9200']
+2025-03-21 14:26:38,824 - elastic_transport.transport - INFO - HEAD http://localhost:9200/crawl_data [status:200 duration:0.014s]
+2025-03-21 14:26:38,824 - database - INFO - 🧹 已清除 URL 快取
+2025-03-21 14:26:38,824 - main - WARNING - 系統初始化完成，但部分組件可能未成功初始化
+2025-03-21 14:26:38,824 - es_manager - INFO - Elasticsearch 連接已關閉
+2025-03-21 14:56:57,696 - main - INFO - 開始系統初始化...
+2025-03-21 14:56:57,701 - database - INFO - 已建立數據庫連接: localhost
+2025-03-21 14:56:57,704 - database - INFO - ✅ 資料庫表結構初始化成功
+2025-03-21 14:56:57,704 - crawler_manager - INFO - 已載入 19 個站點配置
+2025-03-21 14:56:57,705 - database - INFO - ✅ 資料庫表結構初始化成功
+2025-03-21 14:56:57,706 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9094 <connecting> [IPv6 ('::1', 9094, 0, 0)]>: connecting to localhost:9094 [('::1', 9094, 0, 0) IPv6]
+2025-03-21 14:56:57,706 - kafka.conn - INFO - Probing node bootstrap-0 broker version
+2025-03-21 14:56:57,706 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9094 <connecting> [IPv6 ('::1', 9094, 0, 0)]>: Connection complete.
+2025-03-21 14:56:57,816 - kafka.conn - INFO - Broker version identified as 2.5.0
+2025-03-21 14:56:57,816 - kafka.conn - INFO - Set configuration api_version=(2, 5, 0) to skip auto check_version requests on startup
+2025-03-21 14:56:57,816 - kafka.conn - INFO - Probing node bootstrap-0 broker version
+2025-03-21 14:56:57,922 - kafka.conn - INFO - Broker version identified as 2.5.0
+2025-03-21 14:56:57,922 - kafka.conn - INFO - Set configuration api_version=(2, 5, 0) to skip auto check_version requests on startup
+2025-03-21 14:56:57,925 - kafka.conn - INFO - <BrokerConnection node_id=1 host=localhost:9094 <connecting> [IPv6 ('::1', 9094, 0, 0)]>: connecting to localhost:9094 [('::1', 9094, 0, 0) IPv6]
+2025-03-21 14:56:57,925 - kafka.conn - INFO - Probing node 1 broker version
+2025-03-21 14:56:57,926 - kafka.conn - INFO - <BrokerConnection node_id=1 host=localhost:9094 <connecting> [IPv6 ('::1', 9094, 0, 0)]>: Connection complete.
+2025-03-21 14:56:57,926 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9094 <connected> [IPv6 ('::1', 9094, 0, 0)]>: Closing connection. 
+2025-03-21 14:56:58,028 - kafka.conn - INFO - Broker version identified as 2.5.0
+2025-03-21 14:56:58,029 - kafka.conn - INFO - Set configuration api_version=(2, 5, 0) to skip auto check_version requests on startup
+2025-03-21 14:56:58,070 - kafka_manager - INFO - 成功創建 topics: ['CrawlTasks']
+2025-03-21 14:56:58,070 - kafka.conn - INFO - <BrokerConnection node_id=1 host=localhost:9094 <connected> [IPv6 ('::1', 9094, 0, 0)]>: Closing connection. 
+2025-03-21 14:56:58,072 - es_manager - INFO - Elasticsearch 連接成功: ['http://localhost:9200']
+2025-03-21 14:56:58,080 - elastic_transport.transport - INFO - HEAD http://localhost:9200/crawl_data [status:200 duration:0.008s]
+2025-03-21 14:56:58,080 - database - INFO - 🧹 已清除 URL 快取
+2025-03-21 14:56:58,080 - main - INFO - 系統初始化完成
+2025-03-21 14:56:58,080 - es_manager - INFO - Elasticsearch 連接已關閉
+2025-03-21 14:59:15,983 - crawler_manager - INFO - 已載入 19 個站點配置
+2025-03-21 14:59:15,987 - database - INFO - 已建立數據庫連接: localhost
+2025-03-21 14:59:15,989 - database - INFO - ✅ 資料庫表結構初始化成功
+2025-03-21 14:59:15,989 - crawler_manager - INFO - 開始執行 udn 爬蟲
+2025-03-21 14:59:15,990 - base_crawler - INFO - 使用基礎爬蟲類處理 udn
+2025-03-21 14:59:16,031 - base_crawler - INFO - 初始化 udn 爬蟲
+2025-03-21 14:59:16,031 - base_crawler - INFO - 設定: max_depth=1, max_pages=10, initial_urls=3
+2025-03-21 14:59:16,031 - base_crawler - INFO - 開始 udn 完整爬蟲
+2025-03-21 14:59:16,034 - base_crawler - INFO - 開始爬取 udn 頁面的連結
+2025-03-21 14:59:16,779 - base_crawler - INFO - 開始從 4 個起始 URL 爬取連結
+2025-03-21 14:59:22,288 - database - INFO - 🔍 從資料庫讀取，已存在 275 篇文章，將跳過爬取。
+2025-03-21 14:59:22,289 - base_crawler - INFO - 共找到 186 個有效連結，其中 184 個是新連結
+2025-03-21 14:59:22,289 - base_crawler - INFO - 爬取第 1 層，共 3 條連結
+2025-03-21 14:59:22,289 - database - ERROR - 查詢執行失敗: (1054, "Unknown column 'retry_count' in 'where clause'"), 查詢: 
+        SELECT * FROM failed_crawls 
+        WHERE url LIKE %s AND retry_count < 3
+        ORDER BY failed_time DESC 
+        LIMIT %s
+        
+2025-03-21 14:59:22,289 - base_crawler - INFO - 重試隊列中沒有準備好的任務
+2025-03-21 14:59:29,019 - base_crawler - INFO - 爬取 URL: https://udn.com/news/story/7934/8618948?trl3?from=udn_ch2_menu_v2_main_index，第 1 次嘗試
+2025-03-21 14:59:33,002 - kafka_manager - INFO - 發送結果: https://udn.com/news/story/7934/8618948?trl3?from=udn_ch2_menu_v2_main_index 到 topic: CrawlResults
+2025-03-21 14:59:33,003 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9094 <connecting> [IPv6 ('::1', 9094, 0, 0)]>: connecting to localhost:9094 [('::1', 9094, 0, 0) IPv6]
+2025-03-21 14:59:33,003 - kafka.conn - INFO - Probing node bootstrap-0 broker version
+2025-03-21 14:59:33,003 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9094 <connecting> [IPv6 ('::1', 9094, 0, 0)]>: Connection complete.
+2025-03-21 14:59:33,111 - kafka.conn - INFO - Broker version identified as 2.5.0
+2025-03-21 14:59:33,111 - kafka.conn - INFO - Set configuration api_version=(2, 5, 0) to skip auto check_version requests on startup
+2025-03-21 14:59:33,112 - kafka_manager - INFO - Kafka Producer 連接成功: ['localhost:9094']
+2025-03-21 14:59:33,114 - kafka.conn - INFO - <BrokerConnection node_id=1 host=localhost:9094 <connecting> [IPv6 ('::1', 9094, 0, 0)]>: connecting to localhost:9094 [('::1', 9094, 0, 0) IPv6]
+2025-03-21 14:59:33,114 - kafka.conn - INFO - <BrokerConnection node_id=1 host=localhost:9094 <connecting> [IPv6 ('::1', 9094, 0, 0)]>: Connection complete.
+2025-03-21 14:59:33,114 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9094 <connected> [IPv6 ('::1', 9094, 0, 0)]>: Closing connection. 
+2025-03-21 14:59:33,643 - kafka_manager - INFO - 消息已發送到 CrawlResults, Partition: 0, Offset: 0
+2025-03-21 14:59:33,643 - base_crawler - INFO - 成功爬取 https://udn.com/news/story/7934/8618948?trl3?from=udn_ch2_menu_v2_main_index，找到 13 個下一層連結
+2025-03-21 14:59:39,741 - base_crawler - INFO - 爬取 URL: https://udn.com/news/story/7321/8623176?list_ch2_index，第 1 次嘗試
+2025-03-21 14:59:43,871 - kafka_manager - INFO - 發送結果: https://udn.com/news/story/7321/8623176?list_ch2_index 到 topic: CrawlResults
+2025-03-21 14:59:43,874 - kafka_manager - INFO - 消息已發送到 CrawlResults, Partition: 0, Offset: 1
+2025-03-21 14:59:43,874 - base_crawler - INFO - 成功爬取 https://udn.com/news/story/7321/8623176?list_ch2_index，找到 15 個下一層連結
+2025-03-21 14:59:49,910 - base_crawler - INFO - 爬取 URL: https://udn.com/news/story/7002/8623039?list_ch2_index，第 1 次嘗試
+2025-03-21 14:59:54,267 - kafka_manager - INFO - 發送結果: https://udn.com/news/story/7002/8623039?list_ch2_index 到 topic: CrawlResults
+2025-03-21 14:59:54,271 - kafka_manager - INFO - 消息已發送到 CrawlResults, Partition: 0, Offset: 2
+2025-03-21 14:59:54,271 - base_crawler - INFO - 成功爬取 https://udn.com/news/story/7002/8623039?list_ch2_index，找到 15 個下一層連結
+2025-03-21 14:59:54,278 - base_crawler - INFO - 已保存 3 篇文章到 /Users/liaoyuping/Documents/GitHub/crawl/output/udn_depth_1.csv
+2025-03-21 14:59:54,281 - database - ERROR - 批量執行失敗: (1054, "Unknown column 'publish_time' in 'field list'"), 查詢: 
+    INSERT INTO crawl_data 
+    (site_id, website_category, scraped_time, site, title, content, url, description, keywords, publish_time)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+    
+2025-03-21 14:59:54,281 - database - INFO - ✅ 0 筆數據成功存入 MySQL！
+2025-03-21 14:59:54,281 - base_crawler - INFO - 已將 3 篇文章保存到 MySQL
+2025-03-21 14:59:54,283 - es_manager - INFO - Elasticsearch 連接成功: ['http://localhost:9200']
+2025-03-21 14:59:54,354 - elastic_transport.transport - INFO - PUT http://localhost:9200/_bulk [status:200 duration:0.071s]
+2025-03-21 14:59:54,354 - es_manager - INFO - 批量索引完全成功: 共索引 3 篇文章
+2025-03-21 14:59:54,354 - base_crawler - INFO - 已將 3 篇文章索引到 Elasticsearch
+2025-03-21 14:59:54,355 - database - ERROR - 查詢執行失敗: (1054, "Unknown column 'retry_count' in 'where clause'"), 查詢: 
+        SELECT * FROM failed_crawls 
+        WHERE url LIKE %s AND retry_count < 3
+        ORDER BY failed_time DESC 
+        LIMIT %s
+        
+2025-03-21 14:59:54,355 - base_crawler - INFO - 重試隊列中沒有準備好的任務
+2025-03-21 14:59:54,355 - base_crawler - INFO - udn 爬蟲完成，共爬取 3 個頁面，深度 1
+2025-03-21 14:59:54,355 - base_crawler - INFO - 成功率: 100.00%
+2025-03-21 14:59:54,355 - crawler_manager - INFO - udn 爬蟲執行完成，結果: 成功
+2025-03-21 14:59:54,355 - kafka.producer.kafka - INFO - Closing the Kafka producer with 9223372036.0 secs timeout.
+2025-03-21 14:59:54,355 - kafka.conn - INFO - <BrokerConnection node_id=1 host=localhost:9094 <connected> [IPv6 ('::1', 9094, 0, 0)]>: Closing connection. 
+2025-03-21 14:59:54,355 - kafka_manager - INFO - Kafka Producer 已關閉
+2025-03-21 14:59:54,356 - es_manager - INFO - Elasticsearch 連接已關閉
+2025-03-21 15:00:23,772 - crawler_manager - INFO - 已載入 19 個站點配置
+2025-03-21 15:00:23,775 - database - INFO - 已建立數據庫連接: localhost
+2025-03-21 15:00:23,777 - database - INFO - ✅ 資料庫表結構初始化成功
+2025-03-21 15:00:23,789 - database - ERROR - 查詢執行失敗: (1054, "Unknown column 'retry_count' in 'field list'"), 查詢: 
+        SELECT url, reason, status_code, failed_time, retry_count
+        FROM failed_crawls
+        ORDER BY failed_time DESC
+        LIMIT 10
+        
