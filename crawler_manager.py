@@ -65,7 +65,7 @@ class CrawlerManager:
             logger.info(f"{site_name} 爬蟲執行完成，結果: {'成功' if result else '失敗'}")
             return result
         except Exception as e:
-            logger.error(f"{site_name} 爬蟲執行異常: {e}")
+            logger.error(f"{site_name} 爬蟲執行異常: {e}", exc_info=True)
             return False
     
     async def run_all_crawlers(self) -> Dict[str, bool]:

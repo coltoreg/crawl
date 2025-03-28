@@ -9,6 +9,8 @@ import logging
 import time
 import json
 import argparse
+import os
+import subprocess
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 from datetime import datetime
@@ -72,6 +74,31 @@ async def initialize_system() -> bool:
     
     # 清除 URL 快取
     clear_url_cache()
+    
+    # 檢查 Airflow 是否已安裝
+    try:
+        # 嘗試執行 airflow 命令
+        result = subprocess.run(
+            ["airflow", "version"], 
+            capture_output=True, 
+            text=True, 
+            check=False
+        )
+        if result.returncode == 0:
+            logger.info(f"已檢測到 Airflow: {result.stdout.strip()}")
+            # 檢查 Airflow DAG 路徑
+            airflow_dags_dir = os.environ.get("AIRFLOW_HOME", "airflow") + "/dags"
+            if not os.path.exists(airflow_dags_dir):
+                logger.warning(f"Airflow DAGs 目錄不存在: {airflow_dags_dir}")
+                logger.info("請執行 scripts/setup-airflow.sh 來設置 Airflow 環境")
+            else:
+                logger.info(f"Airflow DAGs 目錄: {airflow_dags_dir}")
+        else:
+            logger.warning("未檢測到 Airflow，排程功能將無法使用")
+            logger.info("請執行 scripts/setup-airflow.sh 來設置 Airflow 環境")
+    except FileNotFoundError:
+        logger.warning("未檢測到 Airflow，排程功能將無法使用")
+        logger.info("請執行 scripts/setup-airflow.sh 來設置 Airflow 環境")
     
     if success:
         logger.info("系統初始化完成")
@@ -174,6 +201,65 @@ def show_stats() -> None:
         print(f"  - {date}: {count:,} 篇")
 
 
+def check_airflow_status() -> Dict[str, Any]:
+    """
+    檢查 Airflow 狀態
+    
+    Returns:
+        Dict[str, Any]: Airflow 狀態信息
+    """
+    status = {
+        "installed": False,
+        "running": False,
+        "webserver_url": None,
+        "version": None,
+        "dags": []
+    }
+    
+    try:
+        # 檢查 Airflow 是否已安裝
+        version_result = subprocess.run(
+            ["airflow", "version"], 
+            capture_output=True, 
+            text=True, 
+            check=False
+        )
+        
+        if version_result.returncode == 0:
+            status["installed"] = True
+            status["version"] = version_result.stdout.strip()
+            
+            # 檢查 Airflow Webserver 是否運行
+            ps_result = subprocess.run(
+                ["ps", "-ef"], 
+                capture_output=True, 
+                text=True, 
+                check=False
+            )
+            
+            if "airflow webserver" in ps_result.stdout:
+                status["running"] = True
+                status["webserver_url"] = "http://localhost:8080"
+            
+            # 獲取 DAG 列表
+            dags_result = subprocess.run(
+                ["airflow", "dags", "list", "--output", "json"], 
+                capture_output=True, 
+                text=True, 
+                check=False
+            )
+            
+            if dags_result.returncode == 0:
+                try:
+                    status["dags"] = json.loads(dags_result.stdout.strip())
+                except json.JSONDecodeError:
+                    status["dags"] = []
+    except Exception as e:
+        logger.error(f"檢查 Airflow 狀態時發生錯誤: {e}")
+    
+    return status
+
+
 async def main():
     """
     主程式入口
@@ -186,6 +272,7 @@ async def main():
       python main.py --list                 # 列出所有站點
       python main.py --stats                # 顯示統計資訊
       python main.py --clear-cache          # 清除URL快取
+      python main.py --airflow-status       # 檢查Airflow狀態
     """
     parser = argparse.ArgumentParser(description="爬蟲系統主程式")
     
@@ -197,6 +284,7 @@ async def main():
     group.add_argument("--list", action="store_true", help="列出所有站點")
     group.add_argument("--stats", action="store_true", help="顯示統計資訊")
     group.add_argument("--clear-cache", action="store_true", help="清除URL快取")
+    group.add_argument("--airflow-status", action="store_true", help="檢查Airflow狀態")
     
     args = parser.parse_args()
     
@@ -230,12 +318,42 @@ async def main():
         elif args.clear_cache:
             clear_url_cache()
             print("URL 快取已清除")
+            
+        elif args.airflow_status:
+            status = check_airflow_status()
+            print("\nAirflow 狀態")
+            print("============")
+            print(f"已安裝: {'是' if status['installed'] else '否'}")
+            
+            if status['installed']:
+                print(f"版本: {status['version']}")
+                print(f"運行中: {'是' if status['running'] else '否'}")
+                
+                if status['running']:
+                    print(f"Webserver URL: {status['webserver_url']}")
+                
+                if status['dags']:
+                    print("\nDAG 列表:")
+                    for dag in status['dags']:
+                        dag_id = dag.get('dag_id', 'Unknown')
+                        is_paused = dag.get('is_paused', True)
+                        print(f"  - {dag_id} {'(已暫停)' if is_paused else '(運行中)'}")
+                else:
+                    print("\n沒有可用的 DAG 或無法獲取 DAG 列表")
+                    
+                print("\n使用以下命令管理 Airflow:")
+                print("  啟動 Webserver: airflow webserver -D")
+                print("  啟動 Scheduler: airflow scheduler -D")
+                print("  啟用 DAG: airflow dags unpause [dag_id]")
+            else:
+                print("\n請執行以下命令來設置 Airflow:")
+                print("  ./scripts/setup-airflow.sh")
         
         end_time = time.time()
         print(f"總執行時間: {end_time - start_time:.2f} 秒")
         
     except Exception as e:
-        logger.error(f"執行過程中發生錯誤: {e}")
+        logger.error(f"執行過程中發生錯誤: {e}", exc_info=True)
         print(f"錯誤: {e}")
         
     finally:

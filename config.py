@@ -98,6 +98,13 @@ RATE_LIMIT_CONFIG: Dict[str, Any] = {
     "throttle_duration_minutes": int(os.getenv("RATE_THROTTLE_MINUTES", "2"))
 }
 
+# Airflow 配置
+AIRFLOW_CONFIG = {
+    "dags_folder": "/path/to/airflow/dags",
+    "base_url": "http://localhost:7000"
+}
+
+
 # 站點配置
 SITE_CONFIG: Dict[str, Dict[str, Any]] = {
     "udn": {
