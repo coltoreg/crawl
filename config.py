@@ -18,6 +18,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)  # 確保輸出目錄存在
 BROWSER_CONFIG: Dict[str, Any] = {
     "headless": True,           # 是否使用無頭模式
     "user_agent_mode": "random", # 隨機 User-Agent
+    "browser_type": "firefox",
     #"text_mode": True,          # 是否使用純文字模式
 }
 
@@ -45,22 +46,23 @@ CRAWLER_LIMITS: Dict[str, int] = {
 }
 
 # 資料庫配置
-"""
+
 DB_CONFIG: Dict[str, Union[str, int]] = {
-    "host": os.getenv("DB_HOST", "localhost"),
+    "host": os.getenv("DB_HOST", ""),
     "user": os.getenv("DB_USER", ""),
     "password": os.getenv("DB_PASSWORD", ""),
-    "database": os.getenv("DB_DATABASE", "crawl")
+    "database": os.getenv("DB_DATABASE", ""),
+    "port": int(os.getenv("DB_PORT", "3306")),
 }
-"""
+
 
 #MySQL 連接設定
-DB_CONFIG = {
-    "host": "localhost",
-    "user": "",
-    "password": "",
-    "database": "crawl"
-}
+#DB_CONFIG = {
+    #"host": "localhost",
+    #"user": "",
+    #"password": "",
+    #"database": "crawl"
+#}
 
 
 # Kafka 配置

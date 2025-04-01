@@ -7,6 +7,7 @@ import csv
 import json
 import logging
 import pymysql
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Set, Dict, Any, List, Optional, Union, Tuple
@@ -51,11 +52,44 @@ class DatabaseManager:
         """
         if self._connection is None or not self._connection.open:
             try:
+                logger.info(f"嘗試連接到數據庫: {self.config['host']}")
+                # 顯示連接信息（隱藏密碼）
+                conn_info = self.config.copy()
+                if 'password' in conn_info:
+                    conn_info['password'] = '******'
+                logger.info(f"連接參數: {conn_info}")
+                
                 self._connection = pymysql.connect(**self.config)
                 logger.info(f"已建立數據庫連接: {self.config['host']}")
+                
+                # 測試連接
+                with self._connection.cursor() as cursor:
+                    cursor.execute("SELECT VERSION()")
+                    version = cursor.fetchone()
+                    logger.info(f"MySQL 版本: {version}")
             except pymysql.Error as e:
-                logger.error(f"數據庫連接失敗: {e}")
-                raise
+                error_code = getattr(e, 'args', [None])[0]
+                if error_code == 1049:  # Unknown database
+                    logger.error(f"資料庫 '{self.config.get('database', '')}' 不存在，嘗試創建...")
+                    try:
+                        # 創建資料庫的連接（不指定數據庫名）
+                        temp_config = self.config.copy()
+                        temp_config.pop('database', None)
+                        temp_conn = pymysql.connect(**temp_config)
+                        with temp_conn.cursor() as cursor:
+                            cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.config['database']} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+                        temp_conn.close()
+                        logger.info(f"成功創建資料庫: {self.config['database']}")
+                        
+                        # 重新連接到新創建的資料庫
+                        self._connection = pymysql.connect(**self.config)
+                        logger.info(f"已連接到新創建的資料庫: {self.config['database']}")
+                    except Exception as create_error:
+                        logger.error(f"嘗試創建資料庫時出錯: {create_error}")
+                        raise
+                else:
+                    logger.error(f"數據庫連接失敗: {e}")
+                    raise
         return self._connection
     
     def close_connection(self) -> None:
@@ -80,10 +114,24 @@ class DatabaseManager:
         try:
             connection = self.get_connection()
             with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+                logger.debug(f"執行查詢: {query}, 參數: {params}")
                 cursor.execute(query, params)
-                return cursor.fetchall()
+                result = cursor.fetchall()
+                logger.debug(f"查詢結果: {len(result)} 行")
+                return result
         except pymysql.Error as e:
             logger.error(f"查詢執行失敗: {e}, 查詢: {query}")
+            # 如果是連接錯誤，嘗試重新連接一次
+            if isinstance(e, pymysql.OperationalError) and connection is not None:
+                try:
+                    logger.info("嘗試重新連接並執行查詢...")
+                    self._connection = None  # 強制重新連接
+                    connection = self.get_connection()
+                    with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+                        cursor.execute(query, params)
+                        return cursor.fetchall()
+                except pymysql.Error as retry_e:
+                    logger.error(f"重試查詢失敗: {retry_e}")
             return []
     
     def execute_update(self, query: str, params: Optional[tuple] = None) -> int:
@@ -101,13 +149,30 @@ class DatabaseManager:
         try:
             connection = self.get_connection()
             with connection.cursor() as cursor:
+                logger.debug(f"執行更新: {query}, 參數: {params}")
                 affected_rows = cursor.execute(query, params)
                 connection.commit()
+                logger.debug(f"更新影響行數: {affected_rows}")
                 return affected_rows
         except pymysql.Error as e:
             logger.error(f"更新執行失敗: {e}, 查詢: {query}")
             if connection:
                 connection.rollback()
+            
+            # 如果是連接錯誤，嘗試重新連接一次
+            if isinstance(e, pymysql.OperationalError) and connection is not None:
+                try:
+                    logger.info("嘗試重新連接並執行更新...")
+                    self._connection = None  # 強制重新連接
+                    connection = self.get_connection()
+                    with connection.cursor() as cursor:
+                        affected_rows = cursor.execute(query, params)
+                        connection.commit()
+                        return affected_rows
+                except pymysql.Error as retry_e:
+                    logger.error(f"重試更新失敗: {retry_e}")
+                    if connection:
+                        connection.rollback()
             return 0
     
     def execute_many(self, query: str, params_list: List[tuple]) -> int:
@@ -128,13 +193,30 @@ class DatabaseManager:
         try:
             connection = self.get_connection()
             with connection.cursor() as cursor:
+                logger.debug(f"執行批量操作: {query}, 參數數量: {len(params_list)}")
                 affected_rows = cursor.executemany(query, params_list)
                 connection.commit()
+                logger.debug(f"批量操作影響行數: {affected_rows}")
                 return affected_rows
         except pymysql.Error as e:
             logger.error(f"批量執行失敗: {e}, 查詢: {query}")
             if connection:
                 connection.rollback()
+            
+            # 如果是連接錯誤，嘗試重新連接一次
+            if isinstance(e, pymysql.OperationalError) and connection is not None:
+                try:
+                    logger.info("嘗試重新連接並執行批量操作...")
+                    self._connection = None  # 強制重新連接
+                    connection = self.get_connection()
+                    with connection.cursor() as cursor:
+                        affected_rows = cursor.executemany(query, params_list)
+                        connection.commit()
+                        return affected_rows
+                except pymysql.Error as retry_e:
+                    logger.error(f"重試批量操作失敗: {retry_e}")
+                    if connection:
+                        connection.rollback()
             return 0
 
 
@@ -278,12 +360,16 @@ def get_existing_urls() -> Set[str]:
         sql = "SELECT url FROM crawl_data"
         results = db_manager.execute_query(sql)
         
+        if not results:
+            logger.info("資料庫中未找到任何URL，返回空集合")
+            return set()
+        
         _url_cache = {row["url"] for row in results}
-        logger.info(f"🔍 從資料庫讀取，已存在 {len(_url_cache)} 篇文章，將跳過爬取。")
+        logger.info(f"從資料庫讀取，已存在 {len(_url_cache)} 篇文章，將跳過爬取。")
         return _url_cache
 
     except Exception as e:
-        logger.error(f"❌ MySQL 查詢 URL 錯誤: {e}")
+        logger.error(f"MySQL 查詢 URL 錯誤: {e}")
         return set()
 
 
@@ -305,7 +391,7 @@ def save_to_mysql(df) -> bool:
     required_columns = ["site_id", "website_category", "scraped_time", "site", "title", "content", "url"]
     missing_columns = [col for col in required_columns if col not in df.columns]
     if missing_columns:
-        logger.error(f"❌ 缺少必要欄位: {missing_columns}")
+        logger.error(f" 缺少必要欄位: {missing_columns}")
         return False
 
     # 清理數據 - 確保字符串欄位不是 None
@@ -376,44 +462,68 @@ def init_database() -> bool:
         connection = db_manager.get_connection()
         cursor = connection.cursor()
         
-        # 創建資料庫（如果不存在）
-        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_CONFIG['database']} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
-        cursor.execute(f"USE {DB_CONFIG['database']}")
+        # 檢查資料庫是否存在
+        try:
+            cursor.execute(f"USE {DB_CONFIG['database']}")
+            logger.info(f"使用資料庫: {DB_CONFIG['database']}")
+        except pymysql.Error as e:
+            # 如果資料庫不存在，嘗試創建
+            if getattr(e, 'args', [None])[0] == 1049:  # Unknown database
+                logger.info(f"資料庫 {DB_CONFIG['database']} 不存在，正在創建...")
+                cursor.execute(f"CREATE DATABASE {DB_CONFIG['database']} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+                cursor.execute(f"USE {DB_CONFIG['database']}")
+                logger.info(f"已創建並使用資料庫: {DB_CONFIG['database']}")
+            else:
+                raise
         
-        # 創建爬蟲數據表
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS crawl_data (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            site_id INT NOT NULL,
-            website_category VARCHAR(50) NOT NULL,
-            scraped_time DATETIME NOT NULL,
-            site VARCHAR(100) NOT NULL,
-            title VARCHAR(500) NOT NULL,
-            content TEXT NOT NULL,
-            url VARCHAR(1000) NOT NULL,
-            description TEXT,
-            keywords TEXT,
-            publish_time DATETIME,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            INDEX(url(255)),
-            INDEX(site_id),
-            INDEX(publish_time)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-        """)
+        # 檢查資料表是否存在
+        cursor.execute("SHOW TABLES LIKE 'test.crawl_data'")
+        if not cursor.fetchone():
+            logger.info("爬蟲數據表不存在，正在創建...")
+            # 創建爬蟲數據表
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS test.crawl_data (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                site_id INT NOT NULL,
+                website_category VARCHAR(50) NOT NULL,
+                scraped_time DATETIME NOT NULL,
+                site VARCHAR(100) NOT NULL,
+                title VARCHAR(500) NOT NULL,
+                content TEXT NOT NULL,
+                url VARCHAR(1000) NOT NULL,
+                description TEXT,
+                keywords TEXT,
+                publish_time DATETIME,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX(url(255)),
+                INDEX(site_id),
+                INDEX(publish_time)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            """)
+            logger.info("爬蟲數據表創建成功")
+        else:
+            logger.info("爬蟲數據表已存在")
         
-        # 創建爬取失敗記錄表
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS failed_crawls (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            url VARCHAR(1000) NOT NULL,
-            reason TEXT NOT NULL,
-            status_code VARCHAR(50) NOT NULL,
-            failed_time DATETIME NOT NULL,
-            retry_count INT DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE KEY(url(255))
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-        """)
+        # 檢查失敗記錄表是否存在
+        cursor.execute("SHOW TABLES LIKE 'test.failed_crawls'")
+        if not cursor.fetchone():
+            logger.info("爬取失敗記錄表不存在，正在創建...")
+            # 創建爬取失敗記錄表
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS failed_crawls (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                url VARCHAR(1000) NOT NULL,
+                reason TEXT NOT NULL,
+                status_code VARCHAR(50) NOT NULL,
+                failed_time DATETIME NOT NULL,
+                retry_count INT DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY(url(255))
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            """)
+            logger.info("爬取失敗記錄表創建成功")
+        else:
+            logger.info("爬取失敗記錄表已存在")
         
         connection.commit()
         logger.info("✅ 資料庫表結構初始化成功")
@@ -439,7 +549,7 @@ def get_crawl_stats(days: int = 30) -> Dict[str, Any]:
     
     try:
         # 總文章數
-        sql = "SELECT COUNT(*) as total FROM crawl_data"
+        sql = "SELECT COUNT(*) as total FROM test.crawl_data"
         result = db_manager.execute_query(sql)
         stats["total_articles"] = result[0]["total"] if result else 0
         
@@ -450,7 +560,8 @@ def get_crawl_stats(days: int = 30) -> Dict[str, Any]:
         GROUP BY site 
         ORDER BY count DESC
         """
-        stats["by_site"] = {row["site"]: row["count"] for row in db_manager.execute_query(sql)}
+        site_results = db_manager.execute_query(sql)
+        stats["by_site"] = {row["site"]: row["count"] for row in site_results} if site_results else {}
         
         # 按類別統計
         sql = """
@@ -459,17 +570,19 @@ def get_crawl_stats(days: int = 30) -> Dict[str, Any]:
         GROUP BY website_category 
         ORDER BY count DESC
         """
-        stats["by_category"] = {row["website_category"]: row["count"] for row in db_manager.execute_query(sql)}
+        category_results = db_manager.execute_query(sql)
+        stats["by_category"] = {row["website_category"]: row["count"] for row in category_results} if category_results else {}
         
         # 最近天數的爬取統計
         sql = f"""
         SELECT DATE(scraped_time) as date, COUNT(*) as count 
-        FROM crawl_data 
+        FROM test.crawl_data 
         WHERE scraped_time >= DATE_SUB(NOW(), INTERVAL {days} DAY)
         GROUP BY date 
         ORDER BY date DESC
         """
-        stats["by_date"] = {row["date"].strftime("%Y-%m-%d"): row["count"] for row in db_manager.execute_query(sql)}
+        date_results = db_manager.execute_query(sql)
+        stats["by_date"] = {row["date"].strftime("%Y-%m-%d"): row["count"] for row in date_results} if date_results else {}
         
         # 失敗URL統計
         sql = "SELECT COUNT(*) as total FROM failed_crawls"
@@ -479,30 +592,33 @@ def get_crawl_stats(days: int = 30) -> Dict[str, Any]:
         # 失敗原因分析
         sql = """
         SELECT status_code, COUNT(*) as count
-        FROM failed_crawls
+        FROM test.failed_crawls
         GROUP BY status_code
         ORDER BY count DESC
         LIMIT 10
         """
-        stats["failed_by_status"] = {row["status_code"]: row["count"] for row in db_manager.execute_query(sql)}
+        status_results = db_manager.execute_query(sql)
+        stats["failed_by_status"] = {row["status_code"]: row["count"] for row in status_results} if status_results else {}
         
         # 最近失敗的URL
         sql = """
         SELECT url, reason, status_code, failed_time, retry_count
-        FROM failed_crawls
+        FROM test.failed_crawls
         ORDER BY failed_time DESC
         LIMIT 10
         """
-        stats["recent_failures"] = [
-            {
-                "url": row["url"],
-                "reason": row["reason"] if len(row["reason"]) < 100 else row["reason"][:100] + "...",
-                "status_code": row["status_code"],
-                "failed_time": row["failed_time"].strftime("%Y-%m-%d %H:%M:%S") if hasattr(row["failed_time"], "strftime") else str(row["failed_time"]),
-                "retry_count": row["retry_count"]
-            }
-            for row in db_manager.execute_query(sql)
-        ]
+        failure_results = db_manager.execute_query(sql)
+        stats["recent_failures"] = []
+        
+        if failure_results:
+            for row in failure_results:
+                stats["recent_failures"].append({
+                    "url": row["url"],
+                    "reason": row["reason"] if len(row["reason"]) < 100 else row["reason"][:100] + "...",
+                    "status_code": row["status_code"],
+                    "failed_time": row["failed_time"].strftime("%Y-%m-%d %H:%M:%S") if hasattr(row["failed_time"], "strftime") else str(row["failed_time"]),
+                    "retry_count": row["retry_count"]
+                })
         
         return stats
         

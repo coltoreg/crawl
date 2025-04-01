@@ -2,6 +2,13 @@
 FROM --platform=linux/amd64 python:3.11-slim AS builder
 WORKDIR /app
 
+# 安裝編譯 mysqlclient 所需的系統依賴
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config \
+    default-libmysqlclient-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
 # 複製依賴描述檔
 COPY requirements.txt .
 
@@ -44,6 +51,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     fonts-noto-color-emoji \
     fonts-liberation \
+    default-libmysqlclient-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -70,5 +78,7 @@ ENV DB_PASSWORD=YOUR_RDS_PASSWORD
 ENV DB_DATABASE=crawl
 ENV ES_HOST=http://elasticsearch:9200
 
-# 啟動命令
-CMD ["python", "main.py", "--init"]
+# 啟動時，自動執行 main.py --init
+#CMD ["python", "main.py", "--init"]
+# 啟動時不執行 py
+CMD ["tail", "-f", "/dev/null"]

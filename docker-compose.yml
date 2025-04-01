@@ -100,7 +100,7 @@ services:
 
   # Airflow Webserver
   airflow-webserver:
-    image: apache/airflow:2.6.3
+    image: apache/airflow:2.10.5
     container_name: airflow-webserver
     depends_on:
       - postgres
@@ -133,7 +133,7 @@ services:
 
   # Airflow Scheduler
   airflow-scheduler:
-    image: apache/airflow:2.6.3
+    image: apache/airflow:2.10.5
     container_name: airflow-scheduler
     depends_on:
       - postgres
@@ -160,7 +160,7 @@ services:
 
   # 初始化 Airflow (首次啟動時運行)
   airflow-init:
-    image: apache/airflow:2.6.3
+    image: apache/airflow:2.10.5
     container_name: airflow-init
     depends_on:
       - postgres
